@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sepiver — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f9f9f8;
+  --surface: #ffffff;
+  --border: #e8e8e4;
+  --border-light: #f0f0ec;
+  --text-primary: #1a1a18;
+  --text-secondary: #6b6b67;
+  --text-tertiary: #9d9d99;
+  --accent: #3b5bdb;
+  --accent-light: #eef2ff;
+  --accent-hover: #2f4ac4;
+  --success: #2f9e44;
+  --success-light: #ebfbee;
+  --warning: #e67700;
+  --warning-light: #fff3e0;
+  --danger: #c92a2a;
+  --danger-light: #fff5f5;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* TOP BAR */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.brand { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em; }
+.topbar-icons { display: flex; gap: 4px; }
+.topbar-icon {
+  width: 30px; height: 30px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-tertiary); cursor: pointer; border: none; background: none;
+  transition: background 0.15s, color 0.15s;
+}
+.topbar-icon:hover { background: var(--bg); color: var(--text-secondary); }
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 12px; font-size: 13px;
+  color: var(--text-tertiary); cursor: pointer; min-width: 180px;
+}
+
+/* TABS */
+.tabs {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  gap: 0;
+}
+.tab {
+  padding: 12px 16px; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* CONTENT */
+.content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+/* FILTERS */
+.filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+
+.filter-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 8px 14px; font-size: 13px;
+  font-family: 'DM Sans', sans-serif; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s; position: relative;
+}
+.filter-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.filter-icon { width: 14px; height: 14px; opacity: 0.6; }
+.filter-chevron { margin-left: 4px; opacity: 0.5; font-size: 10px; }
+.filter-clear {
+  background: none; border: none; padding: 0 0 0 6px;
+  color: var(--accent); font-size: 12px; cursor: pointer;
+  display: none; font-family: 'DM Sans', sans-serif;
+}
+.filter-clear.visible { display: inline; }
+
+/* DROPDOWN */
+.dropdown-wrap { position: relative; }
+.dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+  min-width: 220px; z-index: 200; overflow: hidden;
+  display: none;
+}
+.dropdown.open { display: block; }
+.dropdown-header { padding: 10px 14px 6px; font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+.dropdown-item {
+  padding: 8px 14px; font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; color: var(--text-primary);
+  transition: background 0.1s;
+}
+.dropdown-item:hover { background: var(--bg); }
+.dropdown-item.selected { color: var(--accent); }
+.dropdown-check { width: 14px; height: 14px; flex-shrink: 0; }
+.dropdown-footer { padding: 8px 14px; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; }
+.dropdown-footer button {
+  background: none; border: none; font-size: 12px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; color: var(--text-secondary);
+  transition: color 0.15s;
+}
+.dropdown-footer button:hover { color: var(--accent); }
+
+/* DATE INPUT */
+.date-input-wrap { position: relative; }
+.date-input {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 8px 14px; font-size: 13px;
+  font-family: 'DM Sans', sans-serif; color: var(--text-secondary);
+  cursor: pointer; transition: all 0.15s;
+}
+.date-input input[type="date"] {
+  border: none; background: none; font-size: 13px;
+  font-family: 'DM Sans', sans-serif; color: var(--text-primary);
+  cursor: pointer; outline: none; width: 130px;
+}
+.date-input:hover { border-color: var(--accent); }
+.date-input:focus-within { border-color: var(--accent); }
+
+/* SECTION HEADER */
+.section-header {
+  margin-bottom: 20px;
+}
+.section-title { font-size: 20px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em; }
+.section-subtitle { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
+
+/* KPI CARDS */
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 28px; }
+
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px;
+  box-shadow: var(--shadow-sm); transition: box-shadow 0.2s;
+  text-align: center;
+}
+.kpi-card:hover { box-shadow: var(--shadow-md); }
+.kpi-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; line-height: 1.4; min-height: 28px; display: flex; align-items: center; justify-content: center; }
+.kpi-value { font-size: 32px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; font-family: 'DM Mono', monospace; }
+
+/* TABLE CARD */
+.table-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden;
+  margin-bottom: 24px;
+}
+.table-card-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.table-card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.table-count { font-size: 12px; color: var(--text-tertiary); background: var(--bg); padding: 2px 8px; border-radius: 10px; }
+
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600;
+  color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-light); background: var(--bg);
+  white-space: nowrap; cursor: pointer; user-select: none;
+}
+thead th:hover { color: var(--text-primary); }
+.sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+tbody tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafaf8; }
+tbody td { padding: 11px 16px; font-size: 13px; color: var(--text-primary); vertical-align: middle; }
+.td-date { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+.td-link {
+  color: var(--accent); text-decoration: none; font-family: 'DM Mono', monospace;
+  font-size: 11px; display: block; max-width: 340px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.td-link:hover { text-decoration: underline; }
+.td-ausencias { display: flex; flex-wrap: wrap; gap: 4px; }
+.ausencia-pill {
+  background: var(--danger-light); color: var(--danger);
+  font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px;
+  white-space: nowrap;
+}
+.td-client { font-weight: 500; }
+
+/* PAGINATION */
+.pagination {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 12px 16px; border-top: 1px solid var(--border-light);
+  gap: 12px; font-size: 12px; color: var(--text-tertiary);
+}
+.page-btn {
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary); font-size: 14px; transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* EMPTY STATE */
+.empty-state { padding: 48px 24px; text-align: center; color: var(--text-tertiary); font-size: 13px; }
+
+/* OVERLAY */
+.overlay { position: fixed; inset: 0; z-index: 150; display: none; }
+.overlay.open { display: block; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="brand">SEPIVER</span>
+    <div class="topbar-icons">
+      <button class="topbar-icon" title="Editar">✏️</button>
+      <button class="topbar-icon" title="Compartir">↗</button>
+      <button class="topbar-icon" title="Exportar">⬇</button>
+      <button class="topbar-icon" title="Historial">🕐</button>
+    </div>
+  </div>
+  <div class="search-box">
+    <span>🔍</span> Search...
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active">Coberturas</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- FILTERS -->
+  <div class="filters">
+
+    <!-- Fecha 1 -->
+    <div class="date-input-wrap">
+      <label class="date-input">
+        <span>📅</span>
+        <input type="date" id="fecha1" onchange="applyFilters()">
+        <span style="font-size:11px;color:var(--text-tertiary)">Inicio de Rango</span>
+      </label>
+    </div>
+
+    <!-- Fecha 2 -->
+    <div class="date-input-wrap">
+      <label class="date-input">
+        <span>📅</span>
+        <input type="date" id="fecha2" onchange="applyFilters()">
+        <span style="font-size:11px;color:var(--text-tertiary)">Fin de Rango</span>
+      </label>
+    </div>
+
+    <!-- Cliente multi-select -->
+    <div class="dropdown-wrap">
+      <button class="filter-btn" id="clienteBtn" onclick="toggleDropdown('clienteDropdown')">
+        <span>🏢</span>
+        <span id="clienteLabel">Cliente</span>
+        <span class="filter-chevron">▼</span>
+        <span class="filter-clear" id="clienteClear" onclick="clearClientes(event)">✕ Limpiar</span>
+      </button>
+      <div class="dropdown" id="clienteDropdown">
+        <div class="dropdown-header">Seleccionar clientes</div>
+        <div id="clienteItems"></div>
+        <div class="dropdown-footer">
+          <button onclick="selectAllClientes()">Seleccionar todos</button>
+          <button onclick="clearClientes(event)">Limpiar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Incidente type multi-select -->
+    <div class="dropdown-wrap">
+      <button class="filter-btn" id="incidenteBtn" onclick="toggleDropdown('incidenteDropdown')">
+        <span>⚠️</span>
+        <span id="incidenteLabel">Tipo de Incidente</span>
+        <span class="filter-chevron">▼</span>
+        <span class="filter-clear" id="incidenteClear" onclick="clearIncidentes(event)">✕ Limpiar</span>
+      </button>
+      <div class="dropdown" id="incidenteDropdown">
+        <div class="dropdown-header">Filtrar por incidente</div>
+        <div id="incidenteItems"></div>
+        <div class="dropdown-footer">
+          <button onclick="selectAllIncidentes()">Seleccionar todos</button>
+          <button onclick="clearIncidentes(event)">Limpiar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- OVERLAY to close dropdowns -->
+  <div class="overlay" id="overlay" onclick="closeAllDropdowns()"></div>
+
+  <!-- SECTION HEADER -->
+  <div class="section-header">
+    <div class="section-title">Reporte de Coberturas</div>
+    <div class="section-subtitle" id="dateRangeLabel">Mostrando todos los registros</div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Reportes de Coberturas Ingresados</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Coberturas con Incidentes</div>
+      <div class="kpi-value" id="kpi-incidentes">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Ausencias</div>
+      <div class="kpi-value" id="kpi-ausencias">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Incapacidades</div>
+      <div class="kpi-value" id="kpi-incapacidades">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Vacantes</div>
+      <div class="kpi-value" id="kpi-vacantes">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Posiciones no Cubiertas</div>
+      <div class="kpi-value" id="kpi-no-cubiertas">—</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">Reporte de Ausencias</span>
+      <span class="table-count" id="table-count">0 registros</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha / Hora <span class="sort-icon">↕</span></th>
+            <th>Cliente <span class="sort-icon">↕</span></th>
+            <th>Enviado por <span class="sort-icon">↕</span></th>
+            <th>Ausencias <span class="sort-icon">↕</span></th>
+            <th>Incapacidades <span class="sort-icon">↕</span></th>
+            <th>Vacantes <span class="sort-icon">↕</span></th>
+            <th>Posiciones no Cubiertas <span class="sort-icon">↕</span></th>
+            <th>Ver Reporte</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none">No se encontraron registros para los filtros seleccionados.</div>
+    <div class="pagination">
+      <span id="paginationLabel">Rows 1–5 of 0</span>
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>‹</button>
+      <button class="page-btn" id="nextBtn" onclick="changePage(1)" disabled>›</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CLIENTES = [
+  'Constructora Norteña SA', 'Grupo Horizonte', 'Inmobiliaria del Golfo',
+  'Desarrollos Pacífico', 'Urbaniza México', 'Torres del Valle SA',
+  'Residencial Olmeca', 'Fraccionadora Atlántica', 'Balam Desarrollos',
+  'Constructores Unidos', 'Vivienda Integral SA', 'Grupo Arrecife',
+];
+
+// Each client has a fixed set of employees — makes absence data feel real
+const CLIENT_EMPLOYEES = {};
+const ALL_NAMES = [
+  'Pedro Alvarado', 'María Castillo', 'Luis Ramírez', 'Carmen López',
+  'Jorge Núñez', 'Claudia Flores', 'Fernando Ruiz', 'Gabriela Díaz',
+  'Óscar Martínez', 'Verónica Guzmán', 'Héctor Domínguez', 'Isabel Reyes',
+  'Andrés Moreno', 'Patricia Vega', 'Ricardo Salinas', 'Diana Cruz',
+  'Manuel Ortega', 'Lucía Mendoza', 'Enrique Peña', 'Alejandra Ríos',
+  'Tomás Aguilar', 'Silvia Romero', 'Eduardo Vargas', 'Natalia Soto',
+];
+
+// Assign 6-10 employees per client deterministically
+CLIENTES.forEach((c, i) => {
+  const start = (i * 5) % ALL_NAMES.length;
+  const count = 6 + (i % 4);
+  const emps = [];
+  for (let j = 0; j < count; j++) emps.push(ALL_NAMES[(start + j) % ALL_NAMES.length]);
+  CLIENT_EMPLOYEES[c] = emps;
+});
+
+// Supervisors per client
+const CLIENT_SUPERVISORS = {};
+const SUPERVISORS = [
+  'Carlos Mendoza', 'Laura Jiménez', 'Roberto Sánchez', 'Ana Torres',
+  'Miguel Ángel Reyes', 'Sofía Herrera', 'Javier Morales', 'Patricia Vega',
+  'Daniela Fuentes', 'Ernesto Lara', 'Valentina Cruz', 'Sergio Ibarra',
+];
+CLIENTES.forEach((c, i) => { CLIENT_SUPERVISORS[c] = SUPERVISORS[i % SUPERVISORS.length]; });
+
+function randomDate(start, end) {
+  const d = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  // Set realistic working hours 7am–6pm
+  d.setHours(7 + Math.floor(Math.random() * 11), Math.floor(Math.random() * 60), 0, 0);
+  return d;
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) +
+    ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function fakeTaskId() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+// Generate coherent mock data
+// Each client submits roughly 3-5 reports per month, absence rate ~40%
+const RAW_DATA = [];
+const endDate = new Date();
+const startDate = new Date();
+startDate.setMonth(startDate.getMonth() - 3);
+
+// Position names for vacantes and no cubiertas
+const POSITIONS = [
+  'Supervisor de Turno', 'Operador de Máquina', 'Técnico de Mantenimiento',
+  'Auxiliar Administrativo', 'Guardia de Seguridad', 'Analista de Calidad',
+  'Coordinador de Logística', 'Encargado de Almacén',
+];
+
+CLIENTES.forEach(client => {
+  const emps = CLIENT_EMPLOYEES[client];
+  const supervisor = CLIENT_SUPERVISORS[client];
+  const numReports = 8 + Math.floor(Math.random() * 8);
+  for (let i = 0; i < numReports; i++) {
+    const d = randomDate(startDate, endDate);
+    const shuffled = [...emps].sort(() => Math.random() - 0.5);
+    const posShuffled = [...POSITIONS].sort(() => Math.random() - 0.5);
+
+    // Each incident type independent ~30% chance
+    const ausencias = Math.random() < 0.3 ? shuffled.slice(0, 1 + Math.floor(Math.random() * 2)) : [];
+    const incapacidades = Math.random() < 0.2 ? shuffled.slice(2, 3 + Math.floor(Math.random() * 2)) : [];
+    const vacantes = Math.random() < 0.25 ? posShuffled.slice(0, 1 + Math.floor(Math.random() * 2)) : [];
+    const noCubiertas = Math.random() < 0.2 ? posShuffled.slice(2, 3 + Math.floor(Math.random() * 2)) : [];
+
+    RAW_DATA.push({ date: d, client, sender: supervisor, ausencias, incapacidades, vacantes, noCubiertas, taskId: fakeTaskId() });
+  }
+});
+RAW_DATA.sort((a, b) => b.date - a.date);
+
+// State
+let selectedClientes = new Set();
+let selectedIncidentes = new Set();
+let currentPage = 1;
+const PAGE_SIZE = 8;
+
+const INCIDENTE_OPTIONS = [
+  { key: 'ausencias',    label: 'Ausencias' },
+  { key: 'incapacidades', label: 'Incapacidades' },
+  { key: 'vacantes',     label: 'Vacantes' },
+  { key: 'noCubiertas',  label: 'Posiciones no Cubiertas' },
+];
+
+// Build incidente dropdown
+const incidenteItems = document.getElementById('incidenteItems');
+INCIDENTE_OPTIONS.forEach(opt => {
+  const el = document.createElement('div');
+  el.className = 'dropdown-item';
+  el.dataset.value = opt.key;
+  el.innerHTML = `<span class="dropdown-check">○</span> ${opt.label}`;
+  el.onclick = () => toggleIncidente(opt.key);
+  incidenteItems.appendChild(el);
+});
+
+function toggleIncidente(key) {
+  if (selectedIncidentes.has(key)) selectedIncidentes.delete(key);
+  else selectedIncidentes.add(key);
+  updateIncidenteUI();
+  applyFilters();
+}
+
+function updateIncidenteUI() {
+  document.querySelectorAll('#incidenteItems .dropdown-item').forEach(el => {
+    const v = el.dataset.value;
+    const sel = selectedIncidentes.has(v);
+    el.classList.toggle('selected', sel);
+    el.querySelector('.dropdown-check').textContent = sel ? '✓' : '○';
+  });
+  const btn = document.getElementById('incidenteBtn');
+  const label = document.getElementById('incidenteLabel');
+  const clear = document.getElementById('incidenteClear');
+  if (selectedIncidentes.size === 0) {
+    label.textContent = 'Tipo de Incidente';
+    btn.classList.remove('active');
+    clear.classList.remove('visible');
+  } else if (selectedIncidentes.size === 1) {
+    const opt = INCIDENTE_OPTIONS.find(o => o.key === [...selectedIncidentes][0]);
+    label.textContent = opt.label;
+    btn.classList.add('active');
+    clear.classList.add('visible');
+  } else {
+    label.textContent = `${selectedIncidentes.size} tipos`;
+    btn.classList.add('active');
+    clear.classList.add('visible');
+  }
+}
+
+function selectAllIncidentes() {
+  INCIDENTE_OPTIONS.forEach(o => selectedIncidentes.add(o.key));
+  updateIncidenteUI();
+  applyFilters();
+}
+
+function clearIncidentes(e) {
+  if (e) e.stopPropagation();
+  selectedIncidentes.clear();
+  updateIncidenteUI();
+  applyFilters();
+}
+
+// Build cliente dropdown
+const clienteItems = document.getElementById('clienteItems');
+CLIENTES.forEach(c => {
+  const el = document.createElement('div');
+  el.className = 'dropdown-item';
+  el.dataset.value = c;
+  el.innerHTML = `<span class="dropdown-check">○</span> ${c}`;
+  el.onclick = () => toggleCliente(c);
+  clienteItems.appendChild(el);
+});
+
+function toggleCliente(name) {
+  if (selectedClientes.has(name)) selectedClientes.delete(name);
+  else selectedClientes.add(name);
+  updateClienteUI();
+  applyFilters();
+}
+
+function updateClienteUI() {
+  document.querySelectorAll('#clienteItems .dropdown-item').forEach(el => {
+    const v = el.dataset.value;
+    const sel = selectedClientes.has(v);
+    el.classList.toggle('selected', sel);
+    el.querySelector('.dropdown-check').textContent = sel ? '✓' : '○';
+  });
+  const btn = document.getElementById('clienteBtn');
+  const label = document.getElementById('clienteLabel');
+  const clear = document.getElementById('clienteClear');
+  if (selectedClientes.size === 0) {
+    label.textContent = 'Cliente';
+    btn.classList.remove('active');
+    clear.classList.remove('visible');
+  } else if (selectedClientes.size === 1) {
+    label.textContent = [...selectedClientes][0];
+    btn.classList.add('active');
+    clear.classList.add('visible');
+  } else {
+    label.textContent = `${selectedClientes.size} clientes`;
+    btn.classList.add('active');
+    clear.classList.add('visible');
+  }
+}
+
+function selectAllClientes() {
+  CLIENTES.forEach(c => selectedClientes.add(c));
+  updateClienteUI();
+  applyFilters();
+}
+
+function clearClientes(e) {
+  if (e) e.stopPropagation();
+  selectedClientes.clear();
+  updateClienteUI();
+  applyFilters();
+}
+
+function toggleDropdown(id) {
+  const dd = document.getElementById(id);
+  const overlay = document.getElementById('overlay');
+  const isOpen = dd.classList.contains('open');
+  closeAllDropdowns();
+  if (!isOpen) { dd.classList.add('open'); overlay.classList.add('open'); }
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function getFilteredData() {
+  const f1 = document.getElementById('fecha1').value;
+  const f2 = document.getElementById('fecha2').value;
+  return RAW_DATA.filter(row => {
+    const rowDate = row.date.toISOString().slice(0, 10);
+    if (f1 && rowDate < f1) return false;
+    if (f2 && rowDate > f2) return false;
+    if (selectedClientes.size > 0 && !selectedClientes.has(row.client)) return false;
+    if (selectedIncidentes.size > 0) {
+      const hasSelected = [...selectedIncidentes].some(key => row[key].length > 0);
+      if (!hasSelected) return false;
+    }
+    return true;
+  });
+}
+
+function applyFilters() {
+  currentPage = 1;
+  renderTable();
+  updateDateLabel();
+}
+
+function updateDateLabel() {
+  const f1 = document.getElementById('fecha1').value;
+  const f2 = document.getElementById('fecha2').value;
+  const label = document.getElementById('dateRangeLabel');
+  if (!f1 && !f2) label.textContent = 'Mostrando todos los registros';
+  else if (f1 && f2) label.textContent = `Del ${f1} al ${f2}`;
+  else if (f1) label.textContent = `Desde ${f1}`;
+  else label.textContent = `Hasta ${f2}`;
+}
+
+function renderTable() {
+  const data = getFilteredData();
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+  const countEl = document.getElementById('table-count');
+  const paginationLabel = document.getElementById('paginationLabel');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  // KPIs
+  const reportesConIncidentes = data.filter(r =>
+    r.ausencias.length > 0 || r.incapacidades.length > 0 || r.vacantes.length > 0 || r.noCubiertas.length > 0
+  ).length;
+  const totalAusencias = data.reduce((sum, r) => sum + r.ausencias.length, 0);
+  const totalIncapacidades = data.reduce((sum, r) => sum + r.incapacidades.length, 0);
+  const totalVacantes = data.reduce((sum, r) => sum + r.vacantes.length, 0);
+  const totalNoCubiertas = data.reduce((sum, r) => sum + r.noCubiertas.length, 0);
+
+  document.getElementById('kpi-total').textContent = data.length;
+  document.getElementById('kpi-incidentes').textContent = reportesConIncidentes;
+  document.getElementById('kpi-ausencias').textContent = totalAusencias;
+  document.getElementById('kpi-incapacidades').textContent = totalIncapacidades;
+  document.getElementById('kpi-vacantes').textContent = totalVacantes;
+  document.getElementById('kpi-no-cubiertas').textContent = totalNoCubiertas;
+
+  countEl.textContent = `${data.length} registros`;
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    paginationLabel.textContent = 'Sin resultados';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  empty.style.display = 'none';
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageData = data.slice(start, start + PAGE_SIZE);
+
+  tbody.innerHTML = pageData.map(row => `
+    <tr>
+      <td class="td-date">${formatDate(row.date)}</td>
+      <td class="td-client">${row.client}</td>
+      <td>${row.sender}</td>
+      <td>
+        ${row.ausencias.length === 0
+          ? '<span style="color:var(--text-tertiary);font-size:12px">—</span>'
+          : `<div class="td-ausencias">${row.ausencias.map(a => `<span class="ausencia-pill">${a}</span>`).join('')}</div>`
+        }
+      </td>
+      <td>
+        ${row.incapacidades.length === 0
+          ? '<span style="color:var(--text-tertiary);font-size:12px">—</span>'
+          : `<div class="td-ausencias">${row.incapacidades.map(a => `<span class="ausencia-pill" style="background:var(--warning-light);color:var(--warning)">${a}</span>`).join('')}</div>`
+        }
+      </td>
+      <td>
+        ${row.vacantes.length === 0
+          ? '<span style="color:var(--text-tertiary);font-size:12px">—</span>'
+          : `<div class="td-ausencias">${row.vacantes.map(a => `<span class="ausencia-pill" style="background:#f0f4ff;color:#3b5bdb">${a}</span>`).join('')}</div>`
+        }
+      </td>
+      <td>
+        ${row.noCubiertas.length === 0
+          ? '<span style="color:var(--text-tertiary);font-size:12px">—</span>'
+          : `<div class="td-ausencias">${row.noCubiertas.map(a => `<span class="ausencia-pill" style="background:#f3f0ff;color:#6741d9">${a}</span>`).join('')}</div>`
+        }
+      </td>
+      <td>
+        <a class="td-link" href="https://app.michamba.ai/home?taskId=${row.taskId}" target="_blank">
+          https://app.michamba.ai/home?taskId=${row.taskId}
+        </a>
+      </td>
+    </tr>
+  `).join('');
+
+  paginationLabel.textContent = `Rows ${start + 1}–${Math.min(start + PAGE_SIZE, data.length)} of ${data.length}`;
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages;
+}
+
+function changePage(dir) {
+  const data = getFilteredData();
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  currentPage = Math.max(1, Math.min(totalPages, currentPage + dir));
+  renderTable();
+}
+
+// Init
+renderTable();
+updateDateLabel();
+</script>
+</body>
+</html>
